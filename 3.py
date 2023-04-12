@@ -1,16 +1,16 @@
 import pandas as pd
 
-# Read CSV file
-csv_loader = pd.read_csv('./result.csv')
+# Load the data
+emissions = pd.read_csv('Emissions.csv')
+national_totals = pd.read_csv('NationalTotals.csv')
 
-# Get total emissions from installations (excluding aviation) after ETS and ESD
-total_emissions = csv_loader['Total emissions from installations (excluding aviation) after ETS and ESD'].sum()
+# Calculate the sum of emissions for each country in the Emissions table
+emissions_sum = emissions.groupby(['Country', 'Year'])['Emissions'].sum().reset_index()
 
-# Get national total emissions
-national_total_emissions = csv_loader['National Total'].sum()
+# Join the emissions_sum table with the NationalTotals table
+national_emissions = pd.merge(emissions_sum, national_totals, on=['Country', 'Year'])
 
-# Check if the total emissions from installations matches the national total emissions
-if total_emissions == national_total_emissions:
-    print("Data is complete.")
-else:
-    print("Data is incomplete.")
+# Check if the total emissions match for each country
+for index, row in national_emissions.iterrows():
+    if row['Emissions'] != row['Total']:
+        print(f"Data integrity check failed for {row['Country']} in year {row['Year']}")
